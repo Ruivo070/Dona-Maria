@@ -1,0 +1,31 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Entrar | Restaurante Dona Maria Betim{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+  <p class="eyebrow"><span></span> Bem-vindo de volta</p>
+  <h1>Entrar</h1>
+  <p class="auth-intro">Acesse sua conta para acompanhar suas reservas.</p>
+
+  <form method="post" class="auth-form">
+    {{ form.hidden_tag() }}
+
+    <div class="form-field">
+      <label for="{{ form.email.id }}">E-mail</label>
+      {{ form.email(class="form-input", type="email", autocomplete="email", required=true) }}
+      {% for erro in form.email.errors %}<small class="field-error">{{ erro }}</small>{% endfor %}
+    </div>
+
+    <div class="form-field">
+      <label for="{{ form.senha.id }}">Senha</label>
+      {{ form.senha(class="form-input", autocomplete="current-password", required=true) }}
+      {% for erro in form.senha.errors %}<small class="field-error">{{ erro }}</small>{% endfor %}
+    </div>
+
+    <button class="button button-gold auth-submit" type="submit">Entrar</button>
+  </form>
+
+  <p class="auth-switch">Ainda não tem conta? <a href="{{ url_for('auth.cadastro') }}">Criar conta</a></p>
+</section>
+{% endblock %}
