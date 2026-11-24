@@ -1,0 +1,19 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Reserva criada | Restaurante Dona Maria Betim{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+  <p class="eyebrow"><span></span> Pedido recebido</p>
+  <h1>Reserva pendente</h1>
+  <p class="auth-intro">Sua reserva foi registrada. Envie os dados pelo WhatsApp para confirmar com o restaurante.</p>
+  <div class="reservation-summary">
+    <p><strong>Data:</strong> {{ reserva.data.strftime("%d/%m/%Y") }}</p>
+    <p><strong>Horário:</strong> {{ reserva.horario.strftime("%H:%M") }}</p>
+    <p><strong>Pessoas:</strong> {{ reserva.numero_pessoas }}</p>
+    {% if reserva.observacao %}<p><strong>Observação:</strong> {{ reserva.observacao }}</p>{% endif %}
+  </div>
+  <a class="button button-gold auth-submit" href="https://wa.me/5531993270377?{{ whatsapp_query }}" target="_blank" rel="noopener noreferrer">Enviar pelo WhatsApp ↗</a>
+  <p class="auth-switch"><a href="{{ url_for('reservas.minhas_reservas') }}">Ir para minhas reservas</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Painel do dono | Restaurante Dona Maria Betim{% endblock %}
+
+{% block content %}
+<section class="auth-card admin-card">
+  <p class="eyebrow"><span></span> Administração</p>
+  <h1>Painel do dono</h1>
+  <p class="auth-intro">Gerencie reservas, rodízios e itens exibidos no site.</p>
+
+  <nav class="admin-tabs" aria-label="Seções do painel">
+    <a class="{{ 'is-active' if aba == 'reservas' else '' }}" href="{{ url_for('admin.painel', aba='reservas') }}">Reservas</a>
+    <a class="{{ 'is-active' if aba == 'rodizios' else '' }}" href="{{ url_for('admin.painel', aba='rodizios') }}">Rodízios</a>
+    <a class="{{ 'is-active' if aba == 'cardapio' else '' }}" href="{{ url_for('admin.painel', aba='cardapio') }}">Cardápio e itens</a>
+    <a class="{{ 'is-active' if aba == 'usuarios' else '' }}" href="{{ url_for('admin.painel', aba='usuarios') }}">Usuários</a>
+  </nav>
+
+  {% if aba == 'reservas' %}
+  <h2 class="admin-section-title">Reservas</h2>
+  <form class="admin-filter" method="get" action="{{ url_for('admin.painel') }}">
+    <input type="hidden" name="aba" value="reservas">
+    <label for="filtro-data">Filtrar por data</label>
+    <input class="form-input" id="filtro-data" type="date" name="data" value="{{ data_filtro }}">
+    <button class="button button-outline" type="submit">Filtrar</button>
+    {% if data_filtro %}<a class="admin-clear-filter" href="{{ url_for('admin.painel', aba='reservas') }}">Limpar</a>{% endif %}
+  </form>
+
+  {% if reservas %}
+  <div class="admin-list">
+    {% for reserva in reservas %}
+    <article class="admin-record">
+      <div>
+        <h3>{{ reserva.data.strftime("%d/%m/%Y") }} às {{ reserva.horario.strftime("%H:%M") }}</h3>
+        <p><strong>{{ reserva.usuario.nome }}</strong> · {{ reserva.numero_pessoas }} pessoa(s)</p>
+        <p>{{ reserva.usuario.email }}{% if reserva.usuario.telefone %} · {{ reserva.usuario.telefone }}{% endif %}</p>
+        {% if reserva.observacao %}<p class="admin-note">{{ reserva.observacao }}</p>{% endif %}
+      </div>
+      <form class="admin-inline-form" method="post" action="{{ url_for('admin.alterar_status_reserva', reserva_id=reserva.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="sr-only" for="status-{{ reserva.id }}">Status da reserva</label>
+        <select class="form-input" id="status-{{ reserva.id }}" name="status">
+          <option value="pendente" {{ 'selected' if reserva.status == 'pendente' else '' }}>Pendente</option>
+          <option value="confirmada" {{ 'selected' if reserva.status == 'confirmada' else '' }}>Confirmada</option>
+          <option value="cancelada" {{ 'selected' if reserva.status == 'cancelada' else '' }}>Cancelada</option>
+        </select>
+        <button class="button button-gold" type="submit">Salvar</button>
+      </form>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="admin-empty">Nenhuma reserva encontrada para este filtro.</p>
+  {% endif %}
+
+  {% elif aba == 'rodizios' %}
+  <h2 class="admin-section-title">Rodízios da semana</h2>
+  <div class="admin-list">
+    {% for rodizio in rodizios %}
+    <form class="admin-record admin-edit-form" method="post" action="{{ url_for('admin.editar_rodizio', rodizio_id=rodizio.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-field">
+        <label for="rodizio-nome-{{ rodizio.id }}">Nome do rodízio · {{ rodizio.dia }}</label>
+        <input class="form-input" id="rodizio-nome-{{ rodizio.id }}" name="nome" value="{{ rodizio.nome }}" maxlength="120" required>
+      </div>
+      <div class="form-field">
+        <label for="rodizio-preco-{{ rodizio.id }}">Preço</label>
+        <input class="form-input" id="rodizio-preco-{{ rodizio.id }}" name="preco" value="{{ rodizio.preco }}" maxlength="80" required>
+      </div>
+      <div class="form-field">
+        <label for="rodizio-inclui-{{ rodizio.id }}">Descrição</label>
+        <textarea class="form-input form-textarea" id="rodizio-inclui-{{ rodizio.id }}" name="inclui" maxlength="3000" required>{{ rodizio.inclui }}</textarea>
+      </div>
+      <button class="button button-gold" type="submit">Salvar rodízio</button>
+    </form>
+    {% endfor %}
+  </div>
+
+  {% elif aba == 'cardapio' %}
+  <h2 class="admin-section-title">Itens do cardápio</h2>
+  <div class="admin-list">
+    {% for item in itens %}
+    <article class="admin-record admin-menu-record">
+      <form class="admin-edit-form" method="post" action="{{ url_for('admin.editar_item_cardapio', item_id=item.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-field">
+          <label for="item-categoria-{{ item.id }}">Categoria</label>
+          <input class="form-input" id="item-categoria-{{ item.id }}" name="categoria" value="{{ item.categoria }}" maxlength="80" required>
+        </div>
+        <div class="form-field">
+          <label for="item-nome-{{ item.id }}">Nome</label>
+          <input class="form-input" id="item-nome-{{ item.id }}" name="nome" value="{{ item.nome }}" maxlength="160" required>
+        </div>
+        <div class="form-field">
+          <label for="item-descricao-{{ item.id }}">Descrição</label>
+          <textarea class="form-input form-textarea" id="item-descricao-{{ item.id }}" name="descricao" maxlength="3000" required>{{ item.descricao }}</textarea>
+        </div>
+        <div class="form-field">
+          <label for="item-preco-{{ item.id }}">Preço</label>
+          <input class="form-input" id="item-preco-{{ item.id }}" name="preco" value="{{ item.preco }}" maxlength="80" required>
+        </div>
+        <button class="button button-gold" type="submit">Salvar item</button>
+      </form>
+      <form method="post" action="{{ url_for('admin.remover_item_cardapio', item_id=item.id) }}" onsubmit="return confirm('Remover este item do cardápio?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button button-outline admin-remove" type="submit">Remover</button>
+      </form>
+    </article>
+    {% endfor %}
+  </div>
+
+  <h2 class="admin-section-title">Adicionar item ou serviço</h2>
+  <form class="admin-edit-form admin-new-item" method="post" action="{{ url_for('admin.criar_item_cardapio') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-field">
+      <label for="novo-categoria">Categoria</label>
+      <input class="form-input" id="novo-categoria" name="categoria" maxlength="80" required>
+    </div>
+    <div class="form-field">
+      <label for="novo-nome">Nome</label>
+      <input class="form-input" id="novo-nome" name="nome" maxlength="160" required>
+    </div>
+    <div class="form-field">
+      <label for="novo-descricao">Descrição</label>
+      <textarea class="form-input form-textarea" id="novo-descricao" name="descricao" maxlength="3000" required></textarea>
+    </div>
+    <div class="form-field">
+      <label for="novo-preco">Preço</label>
+      <input class="form-input" id="novo-preco" name="preco" maxlength="80" required>
+    </div>
+    <button class="button button-gold" type="submit">Adicionar item</button>
+  </form>
+
+  {% else %}
+  <h2 class="admin-section-title">Usuários cadastrados</h2>
+  {% if usuarios %}
+  <div class="admin-user-list">
+    {% for usuario in usuarios %}
+    <article class="admin-record">
+      <div>
+        <h3>{{ usuario.nome }}</h3>
+        <p>{{ usuario.email }}</p>
+        <p>{{ usuario.telefone or 'Telefone não informado' }}</p>
+      </div>
+      <span class="admin-role">{{ 'Dono' if usuario.is_admin else 'Cliente' }}</span>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="admin-empty">Nenhum usuário cadastrado.</p>
+  {% endif %}
+  {% endif %}
+</section>
+{% endblock %}
